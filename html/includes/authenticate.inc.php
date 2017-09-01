@@ -27,19 +27,19 @@ dbDelete('session', '`session_expiry` <  ?', array(time()));
 session_start();
 
 // Jump in here and support a token authenticate shortcut
-$corpcloud_salt = 'eeMiNg8zoo5ohzai';
-$corpcloud_token = $_REQUEST['corpcloud_token'];
-if ($corpcloud_token) {
-    echo("CORPCLOUD_TOKEN=".$corpcloud_token."<BR>\n");
-    foreach (dbFetchRows('SELECT * FROM users', null) as $user) {
-        $user_hash = hash('sha256', $corpcloud_salt.$user['username']);
-        if ($user_hash == $corpcloud_token) {
-            $_SESSION['authenticated'] = 1;
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['user_id'] = $user['user_id'];
+$corpcloud_salt = getenv('CORPCLOUD_AUTH_SALT');
+if ($corpcloud_salt) {
+    $corpcloud_token = $_REQUEST['corpcloud_token'];
+    if ($corpcloud_token) {
+        foreach (dbFetchRows('SELECT * FROM users', null) as $user) {
+            $user_hash = hash('sha256', $corpcloud_salt.$user['username']);
+            if ($user_hash == $corpcloud_token) {
+                $_SESSION['authenticated'] = 1;
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['user_id'] = $user['user_id'];
+            }
         }
     }
-
 }
 
 if ($vars['page'] == 'logout' && session_authenticated()) {
